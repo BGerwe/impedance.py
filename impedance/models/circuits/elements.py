@@ -1,12 +1,10 @@
 import numpy as np
 
 
-class ElementError(Exception):
-    ...
+class ElementError(Exception): ...
 
 
-class OverwriteError(ElementError):
-    ...
+class OverwriteError(ElementError): ...
 
 
 def element(num_params, units, overwrite=False):
@@ -35,16 +33,22 @@ def element(num_params, units, overwrite=False):
 
         global circuit_elements
         if func.__name__ in ["s", "p"]:
-            raise ElementError("cannot redefine elements 's' (series)" +
-                               "or 'p' (parallel)")
+            raise ElementError(
+                "cannot redefine elements 's' (series)" + "or 'p' (parallel)"
+            )
         elif func.__name__ in circuit_elements and not overwrite:
             raise OverwriteError(
-                f"element {func.__name__} already exists. " +
-                "If you want to overwrite the existing element," +
-                "use `overwrite=True`."
+                f"element {func.__name__} already exists. "
+                + "If you want to overwrite the existing element,"
+                + "use `overwrite=True`."
             )
         else:
             circuit_elements[func.__name__] = wrapper
+        # Adding numpy to circuit_elements for proper evaluation with numpy>=2.0.0 because the
+        # scalar representation was changed. "Scalars are now printed as np.float64(3.0) rather than
+        # just 3.0."
+        # https://numpy.org/doc/2.0/release/2.0.0-notes.html#representation-of-numpy-scalars-changed
+        circuit_elements["np"] = np
 
         return wrapper
 
@@ -290,8 +294,7 @@ def Gs(p, f):
     omega = 2 * np.pi * np.array(f)
     R_G, t_G, phi = p[0], p[1], p[2]
     Z = R_G / (
-        np.sqrt(1 + 1j * omega * t_G)
-        * np.tanh(phi * np.sqrt(1 + 1j * omega * t_G))
+        np.sqrt(1 + 1j * omega * t_G) * np.tanh(phi * np.sqrt(1 + 1j * omega * t_G))
     )
     return Z
 
@@ -313,9 +316,9 @@ def K(p, f):
     return Z
 
 
-@element(num_params=3, units=['Ohm', 'sec', ''])
+@element(num_params=3, units=["Ohm", "sec", ""])
 def Zarc(p, f):
-    """ An RQ element rewritten with resistance and
+    """An RQ element rewritten with resistance and
     and time constant as paramenters. Equivalent to a
     Cole-Cole relaxation in dielectrics.
 
@@ -326,9 +329,9 @@ def Zarc(p, f):
         Z = \\frac{R}{1 + (j \\omega \\tau_k)^\\gamma }
 
     """
-    omega = 2*np.pi*np.array(f)
+    omega = 2 * np.pi * np.array(f)
     R, tau_k, gamma = p[0], p[1], p[2]
-    Z = R/(1 + ((1j*omega*tau_k)**gamma))
+    Z = R / (1 + ((1j * omega * tau_k) ** gamma))
     return Z
 
 
@@ -406,8 +409,7 @@ def get_element_from_name(name):
 
 
 def typeChecker(p, f, name, length):
-    assert isinstance(p, list), \
-        "in {}, input must be of type list".format(name)
+    assert isinstance(p, list), "in {}, input must be of type list".format(name)
     for i in p:
         assert isinstance(
             i, (float, int, np.int32, np.float64)
@@ -416,7 +418,5 @@ def typeChecker(p, f, name, length):
         assert isinstance(
             i, (float, int, np.int32, np.float64)
         ), "in {}, value {} in {} is not a number".format(name, i, f)
-    assert len(p) == length, "in {}, input list must be length {}".format(
-        name, length
-    )
+    assert len(p) == length, "in {}, input list must be length {}".format(name, length)
     return
