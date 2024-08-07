@@ -3,9 +3,14 @@ import string
 import numpy as np
 import pytest
 
-from impedance.models.circuits.elements import (OverwriteError,
-                                                circuit_elements, element, p,
-                                                s, ElementError)
+from impedance.models.circuits.elements import (
+    OverwriteError,
+    circuit_elements,
+    element,
+    p,
+    s,
+    ElementError,
+)
 
 
 def test_each_element():
@@ -69,15 +74,15 @@ def test_each_element():
             (6.332569967499333e-08 - 7.957742115295703e-05j),
         ],
         "Zarc": [
-            (0.08900974-0.00486384j),
-            (0.04818879-0.01198904j),
-            (0.00969182-0.00436265j),
+            (0.08900974 - 0.00486384j),
+            (0.04818879 - 0.01198904j),
+            (0.00969182 - 0.00436265j),
         ],
     }
     input_vals = [0.1, 0.2, 0.3, 0.4]
     for key, f in circuit_elements.items():
         # don't test the outputs of series and parallel functions
-        if key not in ["s", "p"]:
+        if key not in ["s", "p", "np"]:
             num_inputs = f.num_params
             val = f(input_vals[:num_inputs], freqs)
             assert np.isclose(val, correct_vals[key]).all()
@@ -92,7 +97,7 @@ def test_each_element():
             f(["hi"], ["yes", "hello"])
 
     # Test no overflow in T at high frequencies
-    with pytest.warns(None) as record:
+    with pytest.warns(RuntimeWarning) as record:
         circuit_elements["T"]([1, 2, 50, 100], [10000])
     assert not record
 
@@ -127,6 +132,7 @@ def test_element_function_names():
 
 def test_changing_base_functions_fails():
     with pytest.raises(ElementError):
+
         @element(num_params=1, units=["Ohm"])
         def s(p, f):
             # try redefining the series
